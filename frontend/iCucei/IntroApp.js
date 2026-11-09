@@ -10,7 +10,7 @@ function IntroAppInner({ navigation }) {
   });
 
   const goHome = useCallback(() => {
-    navigation.replace("Inicio");
+    navigation.replace("Loginn");
   }, [navigation]);
 
   useEffect(() => {

@@ -135,7 +135,7 @@ export default function Login({ navigation }) {
       try {
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
         if (raw) {
-          navigation.replace('Student', { userData: JSON.parse(raw) });
+          navigation.replace('Inicio');
           return;
         }
       } catch {}
@@ -183,10 +183,7 @@ export default function Login({ navigation }) {
 
       Alert.alert('Bienvenid@', `Hola ${payload?.alumno?.nombre || 'Alumno'}`);
 
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Student', params: { userData: payload } }],
-      });
+      navigation.replace('Inicio');
     } catch (error) {
       const isAbort = error?.name === 'AbortError';
       console.log('Error de red/login:', error);
@@ -200,8 +197,10 @@ export default function Login({ navigation }) {
   };
 
   const handleBack = () => {
-    Alert.alert('Saliendo', 'Regresando al menú principal.');
-    navigation.reset({ index: 0, routes: [{ name: 'Inicio' }] });
+    Alert.alert(
+      'Recuperar contraseña',
+      'Para recuperar tu contraseña, utiliza los canales oficiales de SIIAU/LEO.'
+    );
   };
 
   if (checking) {
@@ -213,67 +212,145 @@ export default function Login({ navigation }) {
   }
 
   return (
-    <ImageBackground source={require('./Imagenes/Backgrounds/LogInBackground.png')} style={styles.backgroundImage}>
-      <View style={styles.overlay}>
-        <View style={styles.contentContainer}>
-          <Text style={styles.text}>* Ingresa tus credenciales de SIIAU/LEO para iniciar sesión.</Text>
-
-          <View style={styles.windowContainer}>
-            <Text style={styles.headerText}>Log In</Text>
-
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="Código"
-                value={codigo}
-                onChangeText={setCodigo}
-                returnKeyType="next"
-                onSubmitEditing={() => nipInputRef.current?.focus()}
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="NIP"
-                secureTextEntry={!showNip}
-                value={nip}
-                onChangeText={setNip}
-                returnKeyType="done"
-                ref={nipInputRef}
-              />
-              <TouchableOpacity onPress={() => setShowNip(!showNip)} style={styles.iconContainer}>
-                <FontAwesome name={showNip ? 'eye' : 'eye-slash'} size={24} color="#2cc0e6ff" />
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity onPress={handleLogin} style={styles.button} disabled={loading}>
-              <Text style={styles.buttonText}>{loading ? 'Entrando…' : 'Iniciar sesión'}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={handleBack} style={styles.button}>
-              <Text style={styles.buttonText}>Regresar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+    <View style={styles.backgroundImage}>
+      <View style={styles.brandArea}>
+        <ImageBackground
+          source={require('./assets/iCuceiLogo.png')}
+          style={styles.logo}
+          imageStyle={styles.logoImage}
+        />
+        <Text style={styles.brandName}>iCucei</Text>
       </View>
-    </ImageBackground>
+      <View style={styles.formArea}>
+        <Text style={styles.headerText}>Log In</Text>
+        <Text style={styles.text}>Inicie sesión con su cuenta UDG</Text>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Código de Estudiante"
+            placeholderTextColor="#e9f4f8"
+            value={codigo}
+            onChangeText={setCodigo}
+            returnKeyType="next"
+            autoCapitalize="none"
+            onSubmitEditing={() => nipInputRef.current?.focus()}
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Contraseña"
+            placeholderTextColor="#e9f4f8"
+            secureTextEntry={!showNip}
+            value={nip}
+            onChangeText={setNip}
+            returnKeyType="done"
+            ref={nipInputRef}
+          />
+          <TouchableOpacity
+            onPress={() => setShowNip(!showNip)}
+            style={styles.iconContainer}
+            accessibilityRole="button"
+            accessibilityLabel={showNip ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+          >
+            <FontAwesome name={showNip ? 'eye' : 'eye-slash'} size={20} color="#ffffff" />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity onPress={handleLogin} style={styles.button} disabled={loading}>
+          {loading
+            ? <ActivityIndicator color="#ffffff" />
+            : <Text style={styles.buttonText}>Entrar</Text>}
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={handleBack} accessibilityRole="button">
+          <Text style={styles.forgotText}>Olvidé mi contraseña</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  backgroundImage: { flex: 1, width: '100%', height: '100%' },
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.6)' },
-  contentContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  text: { fontSize: 15, color: '#fff', textAlign: 'center', fontFamily: 'MyFontArialR', marginBottom: 20 },
-  headerText: { fontSize: 60, color: '#2cc0e6ff', textAlign: 'center', fontFamily: 'MyFontRobotoSlab', marginBottom: 40 },
-  windowContainer: {
-    backgroundColor: 'white', borderRadius: 20, padding: 24, width: '80%', alignItems: 'center',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 3.5, elevation: 5,
+  backgroundImage: { flex: 1, backgroundColor: '#c9edf7' },
+  brandArea: {
+    height: '34%',
+    minHeight: 230,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
   },
-  inputContainer: { width: '100%', marginBottom: 20, position: 'relative' },
-  input: { height: 50, borderColor: '#ccc', borderWidth: 1, paddingLeft: 10, borderRadius: 8, backgroundColor: 'white', marginBottom: 10 },
-  iconContainer: { position: 'absolute', right: 10, top: 12 },
-  button: { backgroundColor: '#2cc0e6ff', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 20, marginBottom: 10, width: '80%' },
-  buttonText: { color: 'white', textAlign: 'center', fontSize: 18, fontFamily: 'MyFontArialR' },
+  logo: { width: 126, height: 126 },
+  logoImage: { resizeMode: 'contain' },
+  brandName: {
+    marginTop: 6,
+    color: '#08749b',
+    fontFamily: 'MyFontRobotoSlab',
+    fontSize: 34,
+    fontStyle: 'italic',
+    fontWeight: '700',
+  },
+  formArea: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingTop: 40,
+  },
+  text: {
+    fontSize: 18,
+    color: '#07536e',
+    textAlign: 'center',
+    fontFamily: 'MyFontArialR',
+    marginBottom: 24,
+  },
+  headerText: {
+    fontSize: 36,
+    color: '#08749b',
+    textAlign: 'center',
+    fontWeight: '700',
+    marginBottom: 22,
+  },
+  inputContainer: {
+    width: '100%',
+    marginBottom: 16,
+    position: 'relative',
+    backgroundColor: '#075a75',
+    borderRadius: 28,
+  },
+  input: {
+    height: 58,
+    color: '#ffffff',
+    fontSize: 18,
+    textAlign: 'center',
+    fontFamily: 'MyFontArialR',
+    paddingHorizontal: 48,
+  },
+  iconContainer: { position: 'absolute', right: 18, top: 17 },
+  button: {
+    backgroundColor: '#72bfd4',
+    borderRadius: 28,
+    paddingVertical: 14,
+    marginTop: 12,
+    marginBottom: 28,
+    width: '55%',
+    minHeight: 52,
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: '#ffffff',
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '700',
+    fontFamily: 'MyFontArialR',
+  },
+  forgotText: {
+    color: '#075a75',
+    fontFamily: 'MyFontArialR',
+    fontWeight: '700',
+    textDecorationLine: 'underline',
+  },
 });
