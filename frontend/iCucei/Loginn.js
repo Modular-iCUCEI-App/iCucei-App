@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  View, Text, TextInput, StyleSheet, ImageBackground, Alert,
+  View, Text, TextInput, StyleSheet, Image, Alert,
   TouchableOpacity, ActivityIndicator,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
@@ -196,7 +196,7 @@ export default function Login({ navigation }) {
     }
   };
 
-  const handleBack = () => {
+  const handleForgotPassword = () => {
     Alert.alert(
       'Recuperar contraseña',
       'Para recuperar tu contraseña, utiliza los canales oficiales de SIIAU/LEO.'
@@ -214,10 +214,10 @@ export default function Login({ navigation }) {
   return (
     <View style={styles.backgroundImage}>
       <View style={styles.brandArea}>
-        <ImageBackground
+        <Image
           source={require('./assets/iCuceiLogo.png')}
           style={styles.logo}
-          imageStyle={styles.logoImage}
+          resizeMode="contain"
         />
         <Text style={styles.brandName}>iCucei</Text>
       </View>
@@ -265,7 +265,7 @@ export default function Login({ navigation }) {
             : <Text style={styles.buttonText}>Entrar</Text>}
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={handleBack} accessibilityRole="button">
+        <TouchableOpacity onPress={handleForgotPassword} accessibilityRole="button">
           <Text style={styles.forgotText}>Olvidé mi contraseña</Text>
         </TouchableOpacity>
       </View>
@@ -285,7 +285,6 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 28,
   },
   logo: { width: 126, height: 126 },
-  logoImage: { resizeMode: 'contain' },
   brandName: {
     marginTop: 6,
     color: '#08749b',

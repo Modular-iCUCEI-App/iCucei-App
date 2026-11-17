@@ -6,16 +6,11 @@
     "orientation": "portrait",
     "icon": "assets/iCuceiLogo.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "assets/iCuceiLogo.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.k1000a-sc.iCucei"
     },
     "android": {
-      "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "assets/iCuceiLogo.png",
         "backgroundColor": "#ffffff"
@@ -27,7 +22,16 @@
     },
     "plugins": [
       "expo-video",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "assets/iCuceiLogo.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
     ]
   }
 }
