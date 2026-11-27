@@ -1,24 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, StatusBar, Image, StyleSheet } from 'react-native';
-import * as Font from 'expo-font';
+import { useFonts } from 'expo-font';
 import MENU from './Menu';
 
 export default function App() {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [fontsLoaded, fontError] = useFonts({
+    MyFontArialR: require('./Fonts/ArialR.ttf'),
+    MyFontRobotoSlab: require('./Fonts/RobotoSlab.ttf'),
+    MyFontSourceSansPro: require('./Fonts/SourceSansPro.ttf'),
+    FrauncesBlack: require('./Fonts/FrauncesBlack.ttf'),
+    FrauncesBlackItalic: require('./Fonts/FrauncesBlackItalic.ttf'),
+    PoppinsBold: require('./Fonts/Poppins-Bold.ttf'),
+    Poppins: require('./Fonts/Poppins.ttf'),
+    ArialNova: require('./Fonts/ArialNova.ttf'),
+  });
 
-  useEffect(() => {
-    (async () => {
-      await Font.loadAsync({
-        MyFontArialR: require('./Fonts/ArialR.ttf'),
-        MyFontRobotoSlab: require('./Fonts/RobotoSlab.ttf'),
-        MyFontSourceSansPro: require('./Fonts/SourceSansPro.ttf'),
-      });
-      setFontsLoaded(true);
-    })();
-  }, []);
-
-
-  if (!fontsLoaded) {
+  if (!fontsLoaded && !fontError) {
     return (
       <View style={styles.splashWrap}>
         <Image
