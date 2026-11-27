@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   BackHandler,
   Image,
@@ -11,6 +11,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -108,6 +109,7 @@ const NEWS = [
 export default function Principal({ navigation }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { bottom } = useSafeAreaInsets();
+  const { fontScale } = useWindowDimensions();
   const drawerGesture = useMemo(() => {
     const swipeLeft = Gesture.Pan()
       .activeOffsetX(-20)
@@ -165,9 +167,22 @@ export default function Principal({ navigation }) {
     navigation.navigate(route, params);
   };
 
-  const changeNews = (step) => {
+  const changeNews = useCallback((step) => {
     setNewsIndex((current) => (current + step + NEWS.length) % NEWS.length);
-  };
+  }, []);
+
+  const newsSwipe = useMemo(() => Gesture.Pan()
+    .activeOffsetX([-18, 18])
+    .failOffsetY([-14, 14])
+    .runOnJS(true)
+    .onEnd(({ translationX, velocityX }) => {
+      const distance = Math.abs(translationX);
+      const quickSwipe = Math.sign(translationX) === Math.sign(velocityX)
+        && Math.abs(velocityX) >= 450;
+      if (distance >= 48 || (distance >= 22 && quickSwipe)) {
+        changeNews(translationX < 0 ? 1 : -1);
+      }
+    }), [changeNews]);
 
   const handleSearch = () => {
     goTo('QceiIA', { query: query.trim() });
@@ -216,7 +231,7 @@ export default function Principal({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.body}>
+      <GestureHandlerRootView style={styles.body}>
         <ScrollView
           ref={scrollRef}
           importantForAccessibility={drawerOpen ? 'no-hide-descendants' : 'auto'}
@@ -228,41 +243,40 @@ export default function Principal({ navigation }) {
           <Text style={styles.dashboardTitle}>Mi Dashboard</Text>
 
           <View style={styles.newsSection}>
-            <TouchableOpacity
-              style={styles.newsBadge}
-              onPress={() => goTo('Anuncios')}
-              accessibilityRole="button"
-              accessibilityLabel="Abrir anuncios"
-            >
-              <Text style={styles.newsBadgeText}>News!</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => goTo('Anuncios')}
-              activeOpacity={0.9}
-              accessibilityRole="button"
-              accessibilityLabel="Ver tablón de anuncios"
-            >
-              <ImageBackground
-                source={require('./Imagenes/CuadroNotificacion.png')}
-                style={styles.newsCard}
-                imageStyle={styles.newsCardImage}
-                resizeMode="stretch"
+            <View style={styles.newsBadge}>
+              <Text style={styles.newsBadgeText} accessibilityRole="header">News!</Text>
+            </View>
+            <GestureDetector gesture={newsSwipe}>
+              <TouchableOpacity
+                style={styles.newsCardButton}
+                onPress={() => goTo('Anuncios')}
+                activeOpacity={0.9}
+                accessibilityRole="link"
+                accessibilityLabel={`${news.title}. ${news.description} Ir al tablón de anuncios.`}
               >
-                <View style={styles.newsContent}>
-                  <Text style={styles.newsTitle}>{news.title}</Text>
-                  <Text style={styles.newsDescription}>{news.description}</Text>
-                  <Text style={styles.newsLink}>Toca para ver el tablón de anuncios</Text>
-                </View>
-              </ImageBackground>
-            </TouchableOpacity>
+                <ImageBackground
+                  source={require('./Imagenes/CuadroNotificacion.png')}
+                  style={[styles.newsCard, { minHeight: 210 * Math.max(1, fontScale) }]}
+                  resizeMode="stretch"
+                >
+                  <View style={styles.newsContent}>
+                    <Text style={styles.newsTitle}>{news.title}</Text>
+                    <Text style={styles.newsDescription}>{news.description}</Text>
+                  </View>
+                  <View style={styles.newsAction}>
+                    <Text style={styles.newsLink}>Ir al tablón de anuncios</Text>
+                  </View>
+                </ImageBackground>
+              </TouchableOpacity>
+            </GestureDetector>
             <View style={styles.carouselControls}>
               <TouchableOpacity
                 onPress={() => changeNews(-1)}
                 accessibilityRole="button"
                 accessibilityLabel="Aviso anterior"
-                hitSlop={8}
+                style={styles.carouselArrow}
               >
-                <Ionicons name="arrow-back" size={20} color={PRIMARY} />
+                <Ionicons name="arrow-back" size={22} color={PRIMARY} />
               </TouchableOpacity>
               <View style={styles.dots}>
                 {NEWS.map((item, index) => (
@@ -271,26 +285,22 @@ export default function Principal({ navigation }) {
                     onPress={() => setNewsIndex(index)}
                     accessibilityRole="button"
                     accessibilityLabel={`Mostrar aviso ${index + 1}`}
-                    style={[styles.dot, index === newsIndex && styles.activeDot]}
-                  />
+                    accessibilityState={{ selected: index === newsIndex }}
+                    style={styles.dotButton}
+                  >
+                    <View style={[styles.dot, index === newsIndex && styles.activeDot]} />
+                  </TouchableOpacity>
                 ))}
               </View>
               <TouchableOpacity
                 onPress={() => changeNews(1)}
                 accessibilityRole="button"
                 accessibilityLabel="Siguiente aviso"
-                hitSlop={8}
+                style={styles.carouselArrow}
               >
                 <Ionicons name="arrow-forward" size={22} color={PRIMARY} />
               </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              onPress={() => goTo('Anuncios')}
-              accessibilityRole="link"
-              style={styles.announcementsLink}
-            >
-              <Text style={styles.announcementsLinkText}>Ir al tablón de Anuncios</Text>
-            </TouchableOpacity>
           </View>
 
           <TouchableOpacity
@@ -312,7 +322,7 @@ export default function Principal({ navigation }) {
                 style={styles.searchInput}
                 value={query}
                 onChangeText={setQuery}
-                placeholder="Ask Qcei..."
+                placeholder="Pregúntale a Qcei…"
                 placeholderTextColor="#55717d"
                 returnKeyType="search"
                 onSubmitEditing={handleSearch}
@@ -362,7 +372,7 @@ export default function Principal({ navigation }) {
         </ScrollView>
 
         {drawerOpen && (
-          <GestureHandlerRootView style={styles.drawerLayer}>
+          <View style={styles.drawerLayer}>
             <TouchableOpacity
               style={styles.drawerBackdrop}
               onPress={() => setDrawerOpen(false)}
@@ -398,9 +408,9 @@ export default function Principal({ navigation }) {
                 <Text style={styles.versionText}>iCucei v1.0</Text>
               </ScrollView>
             </GestureDetector>
-          </GestureHandlerRootView>
+          </View>
         )}
-      </View>
+      </GestureHandlerRootView>
     </SafeAreaView>
   );
 }
@@ -441,7 +451,7 @@ const styles = StyleSheet.create({
     fontSize: 29,
     marginBottom: 8,
   },
-  newsSection: { alignItems: 'center', marginBottom: 18 },
+  newsSection: { alignItems: 'center', marginBottom: 40 },
   newsBadge: {
     alignSelf: 'flex-start',
     zIndex: 1,
@@ -453,65 +463,79 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   newsBadgeText: { fontFamily: 'FrauncesBlackItalic', color: '#ffffff', fontSize: 22 },
-  newsCard: {
-    width: '100%',
-    minHeight: 208,
+  newsCardButton: { width: '100%' },
+  newsCard: { width: '100%' },
+  newsContent: {
+    position: 'absolute',
+    top: '15%',
+    bottom: '30%',
+    left: '7%',
+    right: '9%',
     justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 25,
+    gap: 8,
   },
-  newsCardImage: { resizeMode: 'stretch' },
-  newsContent: { paddingTop: 8, paddingHorizontal: 2 },
   newsTitle: {
     fontFamily: 'FrauncesBlackItalic',
     color: '#243c58',
     textAlign: 'center',
-    fontSize: 16,
-    marginBottom: 7,
+    fontSize: 18,
   },
-  newsDescription: { color: '#576b80', fontSize: 12, lineHeight: 17 },
+  newsDescription: {
+    fontFamily: 'ArialNova',
+    color: '#576b80',
+    textAlign: 'center',
+    fontSize: 14,
+    lineHeight: 19,
+  },
+  newsAction: {
+    position: 'absolute',
+    top: '72.3%',
+    height: '16.6%',
+    left: '5%',
+    right: '7%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   newsLink: {
+    fontFamily: 'PoppinsBold',
     color: PRIMARY,
     fontSize: 12,
-    fontWeight: '700',
-    textAlign: 'right',
-    marginTop: 12,
-    textDecorationLine: 'underline',
+    textAlign: 'center',
   },
   carouselControls: {
-    width: '86%',
-    marginTop: -13,
+    width: '100%',
+    marginTop: 4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  dots: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  carouselArrow: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  dots: { flexDirection: 'row', alignItems: 'center' },
+  dotButton: { width: 26, height: 44, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#86bbca' },
   activeDot: { backgroundColor: PRIMARY },
-  announcementsLink: { alignSelf: 'flex-end', marginTop: 5, marginRight: 20 },
-  announcementsLinkText: {
-    color: '#075a75',
-    fontSize: 12,
-    fontStyle: 'italic',
-    textDecorationLine: 'underline',
-  },
-  assistantImageButton: { alignSelf: 'center', marginTop: 2, marginBottom: 10 },
-  assistantImage: { width: 76, height: 62 },
+  assistantImageButton: { alignSelf: 'center', marginBottom: 10 },
+  assistantImage: { width: 100, height: 82 },
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   searchInputWrap: {
     flex: 1,
-    height: 52,
-    borderRadius: 12,
+    minHeight: 56,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#9bcbd8',
     paddingHorizontal: 14,
     backgroundColor: '#ffffff',
     flexDirection: 'row',
     alignItems: 'center',
   },
-  searchInput: { flex: 1, color: '#203d4b', fontSize: 15, paddingHorizontal: 8 },
+  searchInput: { flex: 1, color: '#203d4b', fontFamily: 'ArialNova', fontSize: 16, paddingHorizontal: 8 },
   voiceButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 12,
+    width: 56,
+    minHeight: 56,
+    alignSelf: 'stretch',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#9bcbd8',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#ffffff',
@@ -519,10 +543,10 @@ const styles = StyleSheet.create({
   assistantHint: {
     color: '#075a75',
     textAlign: 'center',
+    fontFamily: 'Poppins',
     fontSize: 13,
-    fontStyle: 'italic',
     marginTop: 8,
-    marginBottom: 22,
+    marginBottom: 40,
   },
   sectionsTitle: {
     fontFamily: 'FrauncesBlackItalic',
