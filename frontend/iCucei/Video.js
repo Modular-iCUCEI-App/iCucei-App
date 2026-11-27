@@ -58,12 +58,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   headerText: {
+    fontFamily: 'FrauncesBlackItalic',
     fontSize: 58,
     color: "#ffffffff",
-    fontWeight: "bold",
     position: "absolute",
     textAlign: "center",
     marginTop: 160,
-    fontFamily: 'MyFontRobotoSlab'
   },
 });

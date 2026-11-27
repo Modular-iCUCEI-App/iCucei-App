@@ -61,15 +61,12 @@ const styles = StyleSheet.create({
 
   },
   headerText: {
+    fontFamily: 'FrauncesBlackItalic',
     fontSize: 60,
     color: "#2f48d1ff",
-    fontWeight: "bold",
     position: "absolute",
     textAlign: "center",
     marginTop: 50,
-    fontFamily: 'MyFontRobotoSlab'
-    
-    
   },
 });
 

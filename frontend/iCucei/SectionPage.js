@@ -59,10 +59,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
+    fontFamily: 'FrauncesBlackItalic',
     flex: 1,
     color: '#ffffff',
     fontSize: 20,
-    fontWeight: '700',
     marginLeft: 10,
   },
   content: {
@@ -81,10 +81,8 @@ const styles = StyleSheet.create({
   },
   image: { width: 170, height: 150, marginBottom: 8 },
   title: {
+    fontFamily: 'FrauncesBlackItalic',
     color: '#075a75',
-    fontFamily: 'MyFontRobotoSlab',
-    fontStyle: 'italic',
-    fontWeight: '700',
     fontSize: 29,
     textAlign: 'center',
     marginBottom: 12,

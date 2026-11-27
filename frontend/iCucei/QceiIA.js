@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY,
   },
   backButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { color: '#ffffff', fontSize: 20, fontWeight: '700', marginLeft: 10 },
+  headerTitle: { fontFamily: 'FrauncesBlackItalic', color: '#ffffff', fontSize: 20, marginLeft: 10 },
   content: {
     flex: 1,
     alignItems: 'center',
@@ -99,10 +99,8 @@ const styles = StyleSheet.create({
   },
   image: { width: 144, height: 120, marginBottom: 18 },
   title: {
+    fontFamily: 'FrauncesBlackItalic',
     color: '#075a75',
-    fontFamily: 'MyFontRobotoSlab',
-    fontStyle: 'italic',
-    fontWeight: '700',
     fontSize: 26,
     textAlign: 'center',
   },

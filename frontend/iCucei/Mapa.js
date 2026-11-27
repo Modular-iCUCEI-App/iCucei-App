@@ -816,11 +816,10 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   headerText: {
+    fontFamily: 'FrauncesBlackItalic',
     fontSize: 50,
     color: '#fff',
-    fontWeight: 'bold',
     textAlign: 'center',
-    fontFamily: 'MyFontRobotoSlab',
   },
   mapFrame: {
     width: 370,

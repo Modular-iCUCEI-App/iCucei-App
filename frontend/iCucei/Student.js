@@ -425,8 +425,8 @@ const styles = StyleSheet.create({
   overlay: { backgroundColor: 'rgba(255,255,255,0.6)' },
   container: { padding: 16 },
   title: {
-    fontSize: 36, color: '#2cc0e6ff', fontWeight: 'bold', marginBottom: 6, textAlign: 'center',
-    fontFamily: 'MyFontRobotoSlab',
+    fontFamily: 'FrauncesBlackItalic',
+    fontSize: 36, color: '#2cc0e6ff', marginBottom: 6, textAlign: 'center',
   },
   card: {
     backgroundColor: 'white', borderRadius: 20, padding: 16, width: '100%',
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
   cardInner: { width: '100%', backgroundColor: '#f3f4f6', borderRadius: 16, padding: 16, marginTop: 12 },
   label: { color: '#2cc0e6', fontSize: 14, fontWeight: 'bold' },
   value: { fontSize: 18, color: '#000' },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#111827', marginBottom: 6 },
+  sectionTitle: { fontFamily: 'FrauncesBlackItalic', fontSize: 18, color: '#111827', marginBottom: 6 },
   helperSmall: { textAlign: 'center', color: '#6b7280', marginTop: 4, fontSize: 12 },
 
   toggleBtnBlue: { backgroundColor: '#2cc0e6', borderRadius: 12, marginTop: 12, paddingVertical: 12, paddingHorizontal: 16, alignSelf: 'stretch' },
