@@ -1,7 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  BackHandler,
   Image,
   ImageBackground,
+  Keyboard,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -11,7 +13,8 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PRIMARY = '#08749b';
@@ -81,17 +84,10 @@ const SECTIONS = [
 ];
 
 const DRAWER_ITEMS = [
-  { title: 'Inicio', target: 'home' },
   { title: 'Mi Dashboard', target: 'home', highlighted: true },
   { title: 'Mis Apartados', target: 'sections', heading: true },
-  { title: 'Mi Avance', route: 'Student' },
-  { title: 'Mapa', route: 'Mapa' },
-  { title: 'Campus', route: 'Video' },
-  { title: 'Directorio', route: 'Directorio' },
+  ...SECTIONS,
   { title: 'Becas', route: 'Becas' },
-  { title: 'Servicios', route: 'Servicios' },
-  { title: 'Anuncios', route: 'Anuncios' },
-  { title: 'Estacionamiento', route: 'Estacionamiento' },
 ];
 
 const NEWS = [
@@ -111,6 +107,19 @@ const NEWS = [
 
 export default function Principal({ navigation }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { bottom } = useSafeAreaInsets();
+  const drawerGesture = useMemo(() => {
+    const swipeLeft = Gesture.Pan()
+      .activeOffsetX(-20)
+      .failOffsetY([-16, 16])
+      .runOnJS(true)
+      .onEnd(({ translationX, velocityX }) => {
+        if (translationX < -56 || (translationX < -20 && velocityX < -450)) {
+          setDrawerOpen(false);
+        }
+      });
+    return Gesture.Simultaneous(Gesture.Native(), swipeLeft);
+  }, []);
   const [newsIndex, setNewsIndex] = useState(0);
   const [query, setQuery] = useState('');
   const [firstName, setFirstName] = useState('estudiante');
@@ -136,6 +145,20 @@ export default function Principal({ navigation }) {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      setDrawerOpen(false);
+      return true;
+    });
+    return () => subscription.remove();
+  }, [drawerOpen]);
+
+  const toggleDrawer = () => {
+    Keyboard.dismiss();
+    setDrawerOpen((open) => !open);
+  };
 
   const goTo = (route, params) => {
     setDrawerOpen(false);
@@ -173,9 +196,10 @@ export default function Principal({ navigation }) {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.menuButton}
-          onPress={() => setDrawerOpen(true)}
+          onPress={toggleDrawer}
           accessibilityRole="button"
-          accessibilityLabel="Abrir menú"
+          accessibilityLabel={drawerOpen ? 'Cerrar menú' : 'Abrir menú'}
+          accessibilityState={{ expanded: drawerOpen }}
         >
           <Ionicons name="menu" size={27} color="#ffffff" />
         </TouchableOpacity>
@@ -195,6 +219,8 @@ export default function Principal({ navigation }) {
       <View style={styles.body}>
         <ScrollView
           ref={scrollRef}
+          importantForAccessibility={drawerOpen ? 'no-hide-descendants' : 'auto'}
+          accessibilityElementsHidden={drawerOpen}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -321,7 +347,12 @@ export default function Principal({ navigation }) {
                   accessibilityLabel={section.title}
                 >
                   <Image source={section.image} style={styles.sectionImage} resizeMode="contain" />
-                  <Text style={styles.sectionLabel} numberOfLines={2}>
+                  <Text
+                    style={styles.sectionLabel}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.75}
+                  >
                     {section.title}
                   </Text>
                 </TouchableOpacity>
@@ -331,38 +362,43 @@ export default function Principal({ navigation }) {
         </ScrollView>
 
         {drawerOpen && (
-          <View style={styles.drawerLayer}>
+          <GestureHandlerRootView style={styles.drawerLayer}>
             <TouchableOpacity
               style={styles.drawerBackdrop}
               onPress={() => setDrawerOpen(false)}
-              accessibilityRole="button"
-              accessibilityLabel="Cerrar menú"
+              accessible={false}
             />
-            <ScrollView style={styles.drawerPanel} showsVerticalScrollIndicator={false}>
-              {DRAWER_ITEMS.map((item) => (
-                <TouchableOpacity
-                  key={item.title}
-                  style={[
-                    styles.drawerItem,
-                    item.highlighted && styles.drawerHighlighted,
-                    item.heading && styles.drawerHeading,
-                  ]}
-                  onPress={() => handleDrawerItem(item)}
-                  accessibilityRole="button"
-                >
-                  <Text
+            <GestureDetector gesture={drawerGesture}>
+              <ScrollView
+                style={styles.drawerPanel}
+                contentContainerStyle={{ paddingBottom: bottom }}
+                showsVerticalScrollIndicator={false}
+              >
+                {DRAWER_ITEMS.map((item) => (
+                  <TouchableOpacity
+                    key={item.title}
                     style={[
-                      styles.drawerText,
-                      item.heading && styles.drawerHeadingText,
+                      styles.drawerItem,
+                      item.highlighted && styles.drawerHighlighted,
+                      item.heading && styles.drawerHeading,
                     ]}
+                    onPress={() => handleDrawerItem(item)}
+                    accessibilityRole="button"
                   >
-                    {item.title}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-              <Text style={styles.versionText}>iCucei v1.0</Text>
-            </ScrollView>
-          </View>
+                    <Text
+                      style={[
+                        styles.drawerText,
+                        item.heading && styles.drawerHeadingText,
+                      ]}
+                    >
+                      {item.title}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+                <Text style={styles.versionText}>iCucei v1.0</Text>
+              </ScrollView>
+            </GestureDetector>
+          </GestureHandlerRootView>
         )}
       </View>
     </SafeAreaView>
@@ -390,22 +426,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   greeting: {
+    fontFamily: 'FrauncesBlackItalic',
     flex: 1,
     marginHorizontal: 12,
     color: '#ffffff',
     fontSize: 28,
-    fontWeight: '700',
-    fontStyle: 'italic',
-    fontFamily: 'MyFontRobotoSlab',
   },
   notificationButton: { width: 32, alignItems: 'center' },
-  body: { flex: 1, backgroundColor: '#e3eef3' },
+  body: { flex: 1, position: 'relative', backgroundColor: '#e3eef3' },
   scrollContent: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 28 },
   dashboardTitle: {
+    fontFamily: 'FrauncesBlackItalic',
     color: '#075a75',
-    fontFamily: 'MyFontRobotoSlab',
-    fontStyle: 'italic',
-    fontWeight: '700',
     fontSize: 29,
     marginBottom: 8,
   },
@@ -420,7 +452,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
   },
-  newsBadgeText: { color: '#ffffff', fontSize: 22, fontWeight: '700' },
+  newsBadgeText: { fontFamily: 'FrauncesBlackItalic', color: '#ffffff', fontSize: 22 },
   newsCard: {
     width: '100%',
     minHeight: 208,
@@ -431,9 +463,9 @@ const styles = StyleSheet.create({
   newsCardImage: { resizeMode: 'stretch' },
   newsContent: { paddingTop: 8, paddingHorizontal: 2 },
   newsTitle: {
+    fontFamily: 'FrauncesBlackItalic',
     color: '#243c58',
     textAlign: 'center',
-    fontWeight: '700',
     fontSize: 16,
     marginBottom: 7,
   },
@@ -493,10 +525,8 @@ const styles = StyleSheet.create({
     marginBottom: 22,
   },
   sectionsTitle: {
+    fontFamily: 'FrauncesBlackItalic',
     color: '#075a75',
-    fontFamily: 'MyFontRobotoSlab',
-    fontStyle: 'italic',
-    fontWeight: '700',
     fontSize: 28,
     marginBottom: 10,
     marginLeft: -2,
@@ -518,33 +548,30 @@ const styles = StyleSheet.create({
   },
   sectionImage: { width: '94%', height: '72%' },
   sectionLabel: {
+    fontFamily: 'FrauncesBlackItalic',
     width: '100%',
     minHeight: 32,
     color: '#ffffff',
-    fontFamily: 'MyFontRobotoSlab',
-    fontStyle: 'italic',
-    fontWeight: '700',
     fontSize: 19,
     textAlign: 'center',
     textAlignVertical: 'center',
   },
   drawerLayer: { ...StyleSheet.absoluteFillObject, zIndex: 5, flexDirection: 'row' },
   drawerBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.28)' },
-  drawerPanel: { width: '86%', backgroundColor: '#ffffff', paddingTop: 4 },
+  drawerPanel: { flexGrow: 0, width: '90%', backgroundColor: '#ffffff' },
   drawerItem: { minHeight: 55, justifyContent: 'center', paddingHorizontal: 24 },
   drawerHighlighted: { backgroundColor: '#d3edf6' },
   drawerHeading: { minHeight: 65 },
   drawerText: {
+    fontFamily: 'FrauncesBlackItalic',
     color: PRIMARY,
-    fontFamily: 'MyFontRobotoSlab',
-    fontWeight: '700',
     fontSize: 24,
   },
-  drawerHeadingText: { fontStyle: 'italic', fontSize: 27 },
+  drawerHeadingText: { fontSize: 27 },
   versionText: {
+    fontFamily: 'FrauncesBlack',
     color: '#075a75',
     fontSize: 12,
-    fontStyle: 'italic',
     marginHorizontal: 24,
     marginTop: 14,
     marginBottom: 20,
